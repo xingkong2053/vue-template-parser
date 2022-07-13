@@ -107,9 +107,25 @@ export function parseInterpolation(context: ParseContext): Node{
 }
 
 export function parseText(context: ParseContext): Node{
+  // Text</div> Text-{{ a }}</div>
+  // endIdx 先取第一个 < 位置
+  let endIdx = context.source.length 
+  const ltIdx = context.source.indexOf("<");
+  const delimiterIdx = context.source.indexOf("{{")
+  if(ltIdx > -1 && ltIdx < endIdx){
+    endIdx = ltIdx
+  }
+  if(delimiterIdx > -1 && delimiterIdx < endIdx){
+    endIdx = delimiterIdx
+  }
+
+  // 提取文本
+  const content = context.source.slice(0, endIdx);
+  context.advanceBy(content.length)
 
   return {
-    type: "Text"
+    type: "Text",
+    content
   }
 }
 

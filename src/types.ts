@@ -9,6 +9,7 @@ export enum TextMode {
 export interface Node{
   type: string,
   tag?: string,
+  content?: string,
   children?: Node[],
   props?: any[],
   isSelfClosing?: boolean
