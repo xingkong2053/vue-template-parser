@@ -13,7 +13,7 @@ export function parse(str: string): Node{
     },
     // 消费空白字符
     advanceSpaces() {
-      const match = /^[\t\r\n\f]+/.exec(context.source)
+      const match = /^[\t\r\n\f\s]+/.exec(context.source)
       if(match){
         context.advanceBy(match[0].length)
       }

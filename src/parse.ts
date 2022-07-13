@@ -10,8 +10,8 @@ import { Node, ParseContext, TextMode } from "./types"
 export function parseChildren(context: ParseContext, ancestors: Node[]): Node[]{
   // 最终返回值
   let nodes: Node[] = [];
-  const { source/* 待解析的字符串 */, mode } = context
   while(!isEnd(context, ancestors)){
+    const { source/* 待解析的字符串 */, mode } = context
     let node: Node | null = null;
     // DATA和RCDATA模式支持插值节点解析
     if(mode === TextMode.DATA || mode === TextMode.RCDATA){
@@ -24,7 +24,7 @@ export function parseChildren(context: ParseContext, ancestors: Node[]): Node[]{
           }
         } else if(source[1] === "/"){ // should throw error
           
-        } else if(/[a-z]i/.test(source[1])){  // tag
+        } else if(/[a-z]/i.test(source[1])){  // tag
           node = parseElement(context, ancestors)
         }
       } else if(source.startsWith("{{")) { // 解析插值表达式
@@ -75,7 +75,7 @@ export function parseElement(context: ParseContext, ancestors: Node[]): Node{
   element.children = parseChildren(context, ancestors)
   ancestors.pop()
 
-  if(context.source.startsWith(`</${element.tag}>`)){
+  if(context.source.startsWith(`</${element.tag}`)){
     parseTag(context, "end")  //解析并消费结束标签
   } else {
     console.error(`${element.tag} 缺少闭合标签`)
@@ -134,9 +134,9 @@ function parseTag(context: ParseContext, type: "end" | "start" = "start"): Node{
   const { advanceBy, advanceSpaces } = context;
   const match = type === "start"
     // 匹配开始标签 <div > 匹配 <div match[0] = div
-    ? /^<([a-z][^\t\r\n\f/>]*)/i.exec(context.source)
+    ? /^<([a-z][^\t\r\n\f\s/>]*)/i.exec(context.source)
     // 匹配结束标签 </div> 匹配</div match[0] = div
-    : /^<\/([a-z][^\t\r\n\f/>]*)/i.exec(context.source)
+    : /^<\/([a-z][^\t\r\n\f\s/>]*)/i.exec(context.source)
 
   const tag = match?.[1] || ""
   // 消费正则表达式匹配的全部内容

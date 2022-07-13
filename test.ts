@@ -1,7 +1,14 @@
 import * as parser from "./src"
+import fs from "fs"
 
 const raw = `
-  <div></div>
+  start
+  <div >
+    Text<span/>
+    <image />
+  </div>
 `
 
-console.log(parser.parse(raw))
+const result = parser.parse(raw)
+console.log(result)
+fs.writeFileSync("result.json", JSON.stringify(result))
