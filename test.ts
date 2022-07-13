@@ -3,9 +3,9 @@ import fs from "fs"
 
 const raw = `
   start
-  <div >
-    Text<span/>
-    <image />
+  <div id="container" class="box">
+    Text<span style=' background: #111111 '/>
+    <image src @click="handler" v-on:mousedown.stop = "xxxx"/>
   </div>
 `
 

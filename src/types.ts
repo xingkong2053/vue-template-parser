@@ -25,3 +25,9 @@ export interface ParseContext{
   // 消费空白字符
   advanceSpaces(): void;
 }
+
+export interface Attribute{
+  type: string,
+  name: string,
+  value: string
+}

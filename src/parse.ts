@@ -1,4 +1,4 @@
-import { Node, ParseContext, TextMode } from "./types"
+import { Attribute, Node, ParseContext, TextMode } from "./types"
 
 /**
  * 转换子节点
@@ -144,6 +144,10 @@ function parseTag(context: ParseContext, type: "end" | "start" = "start"): Node{
   // 消费空字符
   advanceSpaces()
 
+  // 解析并消费属性
+  // props是`指令`节点和`属性`节点共同组成的数组
+  const props = parseAttributes(context)
+
   // 如果剩余内容以/>结尾, 那就是自闭合标签 (不考虑props内容)
   const isSelfClosing = context.source.startsWith("/>")
   // 消费 /> 或 >
@@ -153,7 +157,64 @@ function parseTag(context: ParseContext, type: "end" | "start" = "start"): Node{
     type: "Element",
     tag,
     children: [],
-    props: [],
+    props,
     isSelfClosing
   }
+}
+
+function parseAttributes(context: ParseContext): Attribute[]{
+  const props: Attribute[] = []
+  const { advanceBy, advanceSpaces } = context
+  // 持续解析直到遇见 > 或 />
+  while(
+    !context.source.startsWith(">") && 
+    !context.source.startsWith("/>")
+  ){
+    // 解析属性或指令
+    // key1 = "val1" key2 = " val2 " >
+    const match = /^([^\t\r\n\f\s/>][^\t\r\n\f\s/>=]*)/i.exec(context.source)
+    // key1 data-aria v-bind.xx
+    const name = match?.[1] || ""
+    advanceBy(name.length)
+    advanceSpaces()
+    // 紧接着应该是=
+    if (!context.source.startsWith("=")) {
+      console.error(`属性${name}不存在属性值`)
+      advanceSpaces()
+      props.push({
+        type: "Attribute",
+        name,
+        value: ""
+      })
+      continue;
+    }
+    advanceBy(1)
+    advanceSpaces()
+    // "val1" key2 = " val2 " >
+    const quote = context.source[0]
+    let value = "";
+    if(quote === "\"" || quote === "\'"){ // 被引号包裹
+      advanceBy(1)
+      // 下一个引号位置
+      const next = context.source.indexOf(quote);
+      if(next > -1){
+        value = context.source.slice(0, next)
+        advanceBy(value.length + 1)
+      } else {
+        console.error("缺少引号")
+      }
+    } else {
+      // 属性值没有用引号括起来, 将空白字符前内容全部作为属性值
+      const match = /^[^\t\r\n\f\s/>]+/.exec(context.source);
+      value = match?.[0] || ""
+      advanceBy(value.length)
+    }
+    advanceSpaces()
+    props.push({
+      type: "Attribute",
+      name,
+      value
+    })
+  }
+  return props
 }
