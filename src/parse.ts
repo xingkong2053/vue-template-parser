@@ -64,6 +64,8 @@ function isEnd(context: ParseContext, ancestors: Node[]): boolean{
 
 export function parseElement(context: ParseContext, ancestors: Node[]): Node{
   const element = parseTag(context) // 解析并消费开始标签
+  // 自闭和标签直接返回
+  if(element.isSelfClosing) return element;
 
   ancestors.push(element)
   // 调用方式 parseChildren -> parseElement -> parseChildren
@@ -112,13 +114,30 @@ export function parseText(context: ParseContext): Node{
 }
 
 // 解析开始/结束标签
-function parseTag(context: ParseContext): Node;  // 函数重载
-function parseTag(context: ParseContext, end: "end"): void; // 函数重载
-function parseTag(context: ParseContext, end?: "end"): void | Node{
-  if(end) return;   // 结束标签
+function parseTag(context: ParseContext, type: "end" | "start" = "start"): Node{
+  const { advanceBy, advanceSpaces } = context;
+  const match = type === "start"
+    // 匹配开始标签 <div > 匹配 <div match[0] = div
+    ? /^<([a-z][^\t\r\n\f/>]*)/i.exec(context.source)
+    // 匹配结束标签 </div> 匹配</div match[0] = div
+    : /^<\/([a-z][^\t\r\n\f/>]*)/i.exec(context.source)
+
+  const tag = match?.[1] || ""
+  // 消费正则表达式匹配的全部内容
+  advanceBy(match?.[0].length || 0)
+  // 消费空字符
+  advanceSpaces()
+
+  // 如果剩余内容以/>结尾, 那就是自闭合标签 (不考虑props内容)
+  const isSelfClosing = context.source.startsWith("/>")
+  // 消费 /> 或 >
+  advanceBy(isSelfClosing? 2: 1)
+
   return {
     type: "Element",
-    tag: "div",
-    children: []
+    tag,
+    children: [],
+    props: [],
+    isSelfClosing
   }
 }
