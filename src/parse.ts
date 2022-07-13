@@ -45,9 +45,18 @@ function isEnd(context: ParseContext, ancestors: Node[]): boolean{
   if(!context.source) return true;
   // 获取栈顶元素
   const parent = ancestors[ancestors.length - 1];
-  // 遇到结束标签并且该标签与父节点标签同名就停止  
-  if(parent && context.source.startsWith(`</${parent.tag}>`)){
-    return true
+  // // 遇到结束标签并且该标签与父节点标签同名就停止  
+  // if(parent && context.source.startsWith(`</${parent.tag}>`)){
+  //   return true
+  // }
+
+  // 更加合理的处理闭合标签
+  // 以应对这种情况: <div><span></div></span> 当找不到匹配的闭合标签时, 将开始标签当作内容看待
+  let i = ancestors.length
+  while(i--){
+    if(context.source.startsWith(`</${ancestors[i].tag}>`)){
+      return true
+    }
   }
   
   return false
@@ -55,6 +64,7 @@ function isEnd(context: ParseContext, ancestors: Node[]): boolean{
 
 export function parseElement(context: ParseContext, ancestors: Node[]): Node{
   const element = parseTag() // 解析并消费开始标签
+
   ancestors.push(element)
   // 调用方式 parseChildren -> parseElement -> parseChildren
   // 每一次调用parseChildren都会开启一个状态机
@@ -62,7 +72,13 @@ export function parseElement(context: ParseContext, ancestors: Node[]): Node{
   // 最终会构造出一颗树形结构的AST
   element.children = parseChildren(context, ancestors)
   ancestors.pop()
-  parseEndTag()   //解析并消费结束标签
+
+  if(context.source.startsWith(`</${element.tag}>`)){
+    parseEndTag()   //解析并消费结束标签
+  } else {
+    console.error(`${element.tag} 缺少闭合标签`)
+  }
+  
   return element
 }
 
