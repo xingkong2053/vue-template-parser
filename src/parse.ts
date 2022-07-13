@@ -43,8 +43,8 @@ export function parseChildren(context: ParseContext, ancestors: Node[]): Node[]{
 
 function isEnd(context: ParseContext, ancestors: Node[]): boolean{
   if(!context.source) return true;
-  // 获取栈顶元素
-  const parent = ancestors[ancestors.length - 1];
+  // // 获取栈顶元素
+  // const parent = ancestors[ancestors.length - 1];
   // // 遇到结束标签并且该标签与父节点标签同名就停止  
   // if(parent && context.source.startsWith(`</${parent.tag}>`)){
   //   return true
