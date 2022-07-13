@@ -1,3 +1,7 @@
-import { a } from "./src"
+import * as parser from "./src"
 
-console.log(a)
+const raw = `
+  <div></div>
+`
+
+console.log(parser.parse(raw))
