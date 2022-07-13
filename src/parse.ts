@@ -63,7 +63,7 @@ function isEnd(context: ParseContext, ancestors: Node[]): boolean{
 }
 
 export function parseElement(context: ParseContext, ancestors: Node[]): Node{
-  const element = parseTag() // 解析并消费开始标签
+  const element = parseTag(context) // 解析并消费开始标签
 
   ancestors.push(element)
   // 调用方式 parseChildren -> parseElement -> parseChildren
@@ -74,7 +74,7 @@ export function parseElement(context: ParseContext, ancestors: Node[]): Node{
   ancestors.pop()
 
   if(context.source.startsWith(`</${element.tag}>`)){
-    parseEndTag()   //解析并消费结束标签
+    parseTag(context, "end")  //解析并消费结束标签
   } else {
     console.error(`${element.tag} 缺少闭合标签`)
   }
@@ -111,16 +111,14 @@ export function parseText(context: ParseContext): Node{
   }
 }
 
-// 解析开始标签
-function parseTag(): Node{
+// 解析开始/结束标签
+function parseTag(context: ParseContext): Node;  // 函数重载
+function parseTag(context: ParseContext, end: "end"): void; // 函数重载
+function parseTag(context: ParseContext, end?: "end"): void | Node{
+  if(end) return;   // 结束标签
   return {
     type: "Element",
     tag: "div",
     children: []
   }
-}
-
-// 解析结束标签
-function parseEndTag(){
-
 }
